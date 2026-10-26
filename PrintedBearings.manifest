@@ -1,0 +1,12 @@
+{
+	"autodeskProduct":  "Fusion",
+	"type":	"script",
+	"author":	"",
+	"description":	{
+		"":	"Create 3D printabel bearings"
+	},
+	"version":	"1.0.0",
+	"supportedOS":	"windows|mac",
+	"editEnabled":	true,
+	"iconFilename":	"ScriptIcon.svg"
+}
