@@ -72,7 +72,8 @@ def create_bearing_geometry(
     inner_diameter: float,
     wall_tb: float,
     wall_lr: float,
-    create_balls: bool
+    create_balls: bool,
+    close_cage_ratio: float
 ):
     root_comp = design.rootComponent
     target_comp = root_comp
@@ -225,8 +226,8 @@ def create_bearing_geometry(
     if not cage_profile:
         raise RuntimeError('Could not find cage annulus profile.')
 
-    # Extrude cage upward from the offset XY plane: 1/2 height + 1/3 ball_size
-    cage_extrude_mm = (total_height / 2.0) + (ball_size / 3.0)
+    # Extrude cage upward from the offset XY plane: 1/2 height + (ball_size * close_cage_ratio)
+    cage_extrude_mm = (total_height / 2.0) + (ball_size * close_cage_ratio)
     ext_input = target_comp.features.extrudeFeatures.createInput(
         cage_profile,
         adsk.fusion.FeatureOperations.NewBodyFeatureOperation
@@ -463,6 +464,7 @@ class BearingCommandExecuteHandler(adsk.core.CommandEventHandler):
             wall_tb = input_len_mm(inputs, 'wallTB')
             wall_lr = input_len_mm(inputs, 'wallLR')
             create_balls = adsk.core.BoolValueCommandInput.cast(inputs.itemById('createBalls')).value
+            close_cage_ratio = adsk.core.ValueCommandInput.cast(inputs.itemById('closeCageRatio')).value
 
             create_bearing_geometry(
                 design,
@@ -474,7 +476,8 @@ class BearingCommandExecuteHandler(adsk.core.CommandEventHandler):
                 inner_diameter,
                 wall_tb,
                 wall_lr,
-                create_balls
+                create_balls,
+                close_cage_ratio
             )
         except:
             ui.messageBox(f'Failed:\n{traceback.format_exc()}')
@@ -515,6 +518,12 @@ class BearingCommandCreatedHandler(adsk.core.CommandCreatedEventHandler):
                 'Ball clearance cage',
                 'mm',
                 adsk.core.ValueInput.createByString('0.1 mm')
+            )
+            inputs.addValueInput(
+                'closeCageRatio',
+                'Close cage ratio',
+                '',
+                adsk.core.ValueInput.createByReal(0.3333)
             )
             inputs.addIntegerSpinnerCommandInput('ballCount', 'Ball count', 1, 999, 1, 10)
             inputs.addValueInput(
